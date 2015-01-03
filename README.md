@@ -18,7 +18,7 @@ Added User Features:
   ```elisp
   (eds-proj-set-opts 
    "gani"
-   '((root-dir  . "/home/duko/Software/gani") 
+   '((root-dir  . "~/Software/gani") 
      (config    . "app.config")
      (log-dir   . "logs") 
      (src-dir   . "src")
@@ -26,7 +26,7 @@ Added User Features:
      (otp-path  . "/usr/local/bin/erl")))
   (eds-proj-set-opts
    "edtsredunderline"
-   '((root-dir  . "/home/duko/Software/edtsredunderline") 
+   '((root-dir  . "~/Software/edtsredunderline") 
      (log-dir   . "logs") 
      (src-dir   . "src")
      (lib-dirs  . ("deps/"))
