@@ -19,7 +19,7 @@
   `(puthash ,(eds-proj-get-name key) ,val ,htable))
 
 (defun eds-proj-get-root-dir (&optional n) (interactive)
-  (eds-proj-hget *EDS-PROJ-root-dir* n))
+  (expand-file-name (eds-proj-hget *EDS-PROJ-root-dir* n)))
 (defun eds-proj-get-root-dir-join (childpath &optional name)
   (f-join (eds-proj-get-root-dir name) childpath))
 (defun eds-proj-set-root-dir (val &optional n) (interactive)
