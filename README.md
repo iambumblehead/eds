@@ -20,7 +20,8 @@ Documentation may appear later. Consult EDS sources for now.
 
 (eds-proj-set-opts
  "myproject"
- '((root-dir  . "~/path/to/myproject") 
+ '((root-dir  . "~/path/to/myproject")
+   (config    . "app.config")
    (log-dir   . "logs") 
    (src-dir   . "src")
    (lib-dirs  . ("deps/"))
