@@ -4,37 +4,9 @@ For use with EDTS, https://github.com/tjarvstrand/edts.
 
 ## Overview
 
-EDS augments EDTS. [EDTS][1] is a tool for Erlang development. I decided to add and fix EDTS features through these files, loading them in emacs after EDTS.
+EDS augments EDTS. [EDTS][1] is a tool for Erlang development. I've gradually added and fixed EDTS features here -loading these in emacs after EDTS.
 
-Added User Features:
-
-  1. `eds-compile-proj` _edts-compile's your otp dependencies_. Without this feature, EDTS red underlines dependency function calls as 'undefined'. With this EDTS will provide auto-completion and other goodness in places where dependency functions are used.
-
-     EDTS apparently [comes with][1] functonality to read these definitions. It does [not work][2] for me.
-
-  2. `eds-shell-proj` _start an edts-shell with an app.config or sys.config file_. Without this edts-shell is impractical for developing applications that require a config file.
-
-  3. `eds-proj-set-opts` _define multiple projects using standard elisp_. Two projects are configured here:
-  ```elisp
-  (eds-proj-set-opts 
-   "gani"
-   '((root-dir  . "~/Software/gani") 
-     (config    . "app.config")
-     (log-dir   . "logs") 
-     (src-dir   . "src")
-     (lib-dirs  . ("deps/"))
-     (otp-path  . "/usr/local/bin/erl")))
-  (eds-proj-set-opts
-   "edtsredunderline"
-   '((root-dir  . "~/Software/edtsredunderline") 
-     (log-dir   . "logs") 
-     (src-dir   . "src")
-     (lib-dirs  . ("deps/"))
-     (otp-path  . "/usr/local/bin/erl")))
-  ```
-  EDS will reliably start a project shell for either of these projects no matter which file is opened in the buffer. Switching between projects is easy, `eds-proj-set-name`.
-
-`eds-proj-*` functions simplify the project data management. Properties for any project are easily obtained/defined at once or individually.
+Documentation may appear later. Consult EDS sources for now.
 
 ## Install
 
@@ -43,6 +15,7 @@ Added User Features:
 (load-file "~/Software/eds/eds-util.el")
 (load-file "~/Software/eds/eds-proj.el")
 (load-file "~/Software/eds/eds-shell.el")
+(load-file "~/Software/eds/eds-stamp.el")
 (load-file "~/Software/eds/eds-compile.el")
 
 (eds-proj-set-opts
@@ -51,8 +24,33 @@ Added User Features:
    (log-dir   . "logs") 
    (src-dir   . "src")
    (lib-dirs  . ("deps/"))
-   (otp-path  . "/usr/local/bin/erl")))
+   (otp-path  . "/usr/local/bin/erl")
+   (st-author . "bumblehead <chris@bumblehead.com>")
+   (st-copy   . "Ganimas LLC")))
 ```
+
+## EDS Features:
+
+  1. `eds-compile-proj`
+     compile all otp-dependencies used by your application with edts. 
+
+  2. `eds-shell-proj`
+     start an edts-shell in the root directory of your application, using an app.config or sys.config file defined for your project. if no config file is defined that is ok.
+     
+  3. `eds-proj-set-opts`
+     define projects using standard elisp. `eds-proj-set-opts` may be used multiple times to define multiple projects. Switch between defined projects using `eds-proj-set-name`.
+
+  4. `eds-proj-*`
+     functions named with the `eds-proj-*` pattern make project data easy to obtain and define any time.
+
+  5. `eds-stamp.el*`
+     if `st-copy` or `st-author` are defined, maintains a stamp at the top of your application src/ erl files each time one is saved. the stamp looks like this:
+     ```erlang
+     %% Filename: chat_app.erl  
+     %% Timestamp: 2015.01.13-12:10:19 (last modified)
+     %% Copyright: mycopy  
+     %% Author(s): me <me@domain.com>       
+     ```
 
 
 [1]: https://github.com/tjarvstrand/edts "edts"

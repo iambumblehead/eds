@@ -6,10 +6,12 @@
 (defvar *EDS-PROJ-src-dir* (make-hash-table :test 'equal))
 (defvar *EDS-PROJ-lib-dirs* (make-hash-table :test 'equal))
 (defvar *EDS-PROJ-start-cmd* (make-hash-table :test 'equal))
+(defvar *EDS-PROJ-st-author* (make-hash-table :test 'equal))
+(defvar *EDS-PROJ-st-copy* (make-hash-table :test 'equal))
 
 ;; abstracts some boilerplace used for the get and set values to hash tables.
 ;; values for a project are defined to a key named to that projects name.
-;; if no truthy value is given, "" will be set.
+;;
 ;; ex.,
 ;;   (gethash *EDS-PROJ-log-dir* "sampleproject")
 ;;   (gethash *EDS-PROJ-log-dir* "otherproject")
@@ -32,6 +34,9 @@
 
 (defun eds-proj-get-src-dir (&optional n) (interactive)
   (eds-proj-hget *EDS-PROJ-src-dir* n))
+(defun eds-proj-get-src-dirpath (&optional n) (interactive)
+  (let ((dir (eds-proj-hget *EDS-PROJ-src-dir* n)))
+    (when dir (eds-proj-get-root-dir-join dir n))))
 (defun eds-proj-set-src-dir (val &optional n) (interactive)
   (eds-proj-hset *EDS-PROJ-src-dir* val n))
 
@@ -59,6 +64,16 @@
   (eds-proj-hget *EDS-PROJ-start-cmd* n))
 (defun eds-proj-set-start-cmd (val &optional n) (interactive)
   (eds-proj-hset *EDS-PROJ-start-cmd* val n))
+
+(defun eds-proj-get-st-author (&optional n) (interactive)
+  (eds-proj-hget *EDS-PROJ-st-author* n))
+(defun eds-proj-set-st-author (val &optional n) (interactive)
+  (eds-proj-hset *EDS-PROJ-st-author* val n))
+
+(defun eds-proj-get-st-copy (&optional n) (interactive)
+  (eds-proj-hget *EDS-PROJ-st-copy* n))
+(defun eds-proj-set-st-copy (val &optional n) (interactive)
+  (eds-proj-hset *EDS-PROJ-st-copy* val n))
 
 ;;;
 ;;; set / get project names
@@ -99,7 +114,9 @@
   (eds-proj-set-log-dir   (eds-alist-key opts 'log-dir)   name)
   (eds-proj-set-src-dir   (eds-alist-key opts 'src-dir)   name)
   (eds-proj-set-lib-dirs  (eds-alist-key opts 'lib-dirs)  name)
-  (eds-proj-set-start-cmd (eds-alist-key opts 'start-cmd) name))
+  (eds-proj-set-start-cmd (eds-alist-key opts 'start-cmd) name)
+  (eds-proj-set-st-author (eds-alist-key opts 'st-author) name)
+  (eds-proj-set-st-copy   (eds-alist-key opts 'st-copy)   name))
 
 (defun eds-proj-show-opts (&optional name) (interactive)
   (print 
@@ -114,4 +131,26 @@
                             'identity 
                             (eds-proj-get-lib-dirs name) ", ")
     "\n proj-start-cmd : " (eds-proj-get-start-cmd name) 
+    "\n proj-st-author : " (eds-proj-get-st-author name)
+    "\n proj-st-copy   : " (eds-proj-get-st-copy   name)
     "\n")))
+
+;;;
+;;; proj-specific convenience functions
+;;;
+(defun eds-proj-is-src-file? (filepath &optional name) (interactive)
+  "'true' indicates a filepath in the project src/"
+  (let ((full-filepath (expand-file-name filepath))
+        (full-srcpath (eds-proj-get-src-dirpath name)))
+    (equal (string-match full-srcpath full-filepath) 0)))
+
+(defun eds-proj-is-src-erl-file? (filepath &optional name) (interactive)
+  (when (eds-util-is-erl-file? filepath)
+    (eds-proj-is-src-file? filepath name)))
+
+(defun eds-proj-is-stampable-file? (filepath &optional name) (interactive)
+  "true if filepath in proj src/ and proj includes st-author or st-copy"
+  (and (eds-proj-is-src-erl-file? filepath)
+       (or (eds-proj-get-st-author)
+           (eds-proj-get-st-copy))))
+
