@@ -1,5 +1,6 @@
 (defvar *EDS-PROJ* "")
 (defvar *EDS-PROJ-otppath* (make-hash-table :test 'equal))
+(defvar *EDS-PROJ-plt-path* (make-hash-table :test 'equal))
 (defvar *EDS-PROJ-config* (make-hash-table :test 'equal))
 (defvar *EDS-PROJ-root-dir* (make-hash-table :test 'equal))
 (defvar *EDS-PROJ-log-dir* (make-hash-table :test 'equal))
@@ -15,10 +16,10 @@
 ;; ex.,
 ;;   (gethash *EDS-PROJ-log-dir* "sampleproject")
 ;;   (gethash *EDS-PROJ-log-dir* "otherproject")
-(defmacro eds-proj-hget (htable &optional key)
-  `(gethash ,(eds-proj-get-name key) ,htable))
-(defmacro eds-proj-hset (htable val &optional key)
-  `(puthash ,(eds-proj-get-name key) ,val ,htable))
+(defun eds-proj-hget (htable &optional key)
+  (gethash (eds-proj-get-name key) htable))
+(defun eds-proj-hset (htable val &optional key)
+  (puthash (eds-proj-get-name key) val htable))
 
 (defun eds-proj-get-root-dir (&optional n) (interactive)
   (expand-file-name (eds-proj-hget *EDS-PROJ-root-dir* n)))
@@ -54,6 +55,22 @@
       (warn "[!!!] eds: erl bin not found")))
 (defun eds-proj-set-otppath (val &optional n) (interactive)
   (eds-proj-hset *EDS-PROJ-otppath* val n))
+
+(defun eds-proj-get-core-plt-path (&optional n) (interactive)
+  (let ((plt-path (eds-proj-hget *EDS-PROJ-plt-path* n)))
+    (if plt-path (expand-file-name plt-path)
+      (warn "[!!!] eds: no plt path defined"))))
+(defun eds-proj-get-core-plt-path-join (childpath &optional name)
+  (f-join (eds-proj-get-core-plt-path name) childpath))
+(defun eds-proj-set-core-plt-path (val &optional n) (interactive)
+  (eds-proj-hset *EDS-PROJ-plt-path* val n))
+
+(defun eds-proj-get-base-plt-path (&optional n) (interactive)
+  "return first discovered *.plt path in project root directory"
+  (let ((base_plt_pathlist (f-glob (eds-proj-get-root-dir-join "./*.plt" n))))
+    (if base_plt_pathlist (car base_plt_pathlist)
+      (eds-proj-get-root-dir-join (concat (eds-proj-get-name n) ".plt")))))
+
 
 (defun eds-proj-get-lib-dirs (&optional n) (interactive)
   (eds-proj-hget *EDS-PROJ-lib-dirs* n))
@@ -107,32 +124,35 @@
 
 (defun eds-proj-set-opts (name opts) (interactive)
   "set all values specific to the 'name' project"
-  (eds-proj-set-name      name)
-  (eds-proj-set-otppath   (eds-alist-key opts 'otp-path)  name)
-  (eds-proj-set-config    (eds-alist-key opts 'config)    name)
-  (eds-proj-set-root-dir  (eds-alist-key opts 'root-dir)  name)
-  (eds-proj-set-log-dir   (eds-alist-key opts 'log-dir)   name)
-  (eds-proj-set-src-dir   (eds-alist-key opts 'src-dir)   name)
-  (eds-proj-set-lib-dirs  (eds-alist-key opts 'lib-dirs)  name)
-  (eds-proj-set-start-cmd (eds-alist-key opts 'start-cmd) name)
-  (eds-proj-set-st-author (eds-alist-key opts 'st-author) name)
-  (eds-proj-set-st-copy   (eds-alist-key opts 'st-copy)   name))
+
+  (eds-proj-set-name          name)
+  (eds-proj-set-otppath       (eds-alist-key opts 'otp-path)  name)
+  (eds-proj-set-core-plt-path (eds-alist-key opts 'plt-path)  name)
+  (eds-proj-set-config        (eds-alist-key opts 'config)    name)
+  (eds-proj-set-root-dir      (eds-alist-key opts 'root-dir)  name)
+  (eds-proj-set-log-dir       (eds-alist-key opts 'log-dir)   name)
+  (eds-proj-set-src-dir       (eds-alist-key opts 'src-dir)   name)
+  (eds-proj-set-lib-dirs      (eds-alist-key opts 'lib-dirs)  name)
+  (eds-proj-set-start-cmd     (eds-alist-key opts 'start-cmd) name)
+  (eds-proj-set-st-author     (eds-alist-key opts 'st-author) name)
+  (eds-proj-set-st-copy       (eds-alist-key opts 'st-copy)   name))
 
 (defun eds-proj-show-opts (&optional name) (interactive)
   (print 
    (concat
     " " (eds-proj-get-name name) ","
-    "\n proj-otppath   : " (eds-proj-get-otppath   name)
-    "\n proj-config    : " (eds-proj-get-config    name)
-    "\n proj-root-dir  : " (eds-proj-get-root-dir  name)
-    "\n proj-log-dir   : " (eds-proj-get-log-dir   name)
-    "\n proj-src-dir   : " (eds-proj-get-src-dir   name)
+    "\n proj-otppath   : " (eds-proj-get-otppath       name)
+    "\n proj-config    : " (eds-proj-get-config        name)
+    "\n proj-root-dir  : " (eds-proj-get-root-dir      name)
+    "\n proj-log-dir   : " (eds-proj-get-log-dir       name)
+    "\n proj-src-dir   : " (eds-proj-get-src-dir       name)
+    "\n proj-plt-path  : " (eds-proj-get-core-plt-path name)
     "\n proj-lib-dirs  : " (mapconcat 
                             'identity 
-                            (eds-proj-get-lib-dirs name) ", ")
-    "\n proj-start-cmd : " (eds-proj-get-start-cmd name) 
-    "\n proj-st-author : " (eds-proj-get-st-author name)
-    "\n proj-st-copy   : " (eds-proj-get-st-copy   name)
+                            (eds-proj-get-lib-dirs     name) ", ")
+    "\n proj-start-cmd : " (eds-proj-get-start-cmd     name) 
+    "\n proj-st-author : " (eds-proj-get-st-author     name)
+    "\n proj-st-copy   : " (eds-proj-get-st-copy       name)
     "\n")))
 
 ;;;
@@ -153,4 +173,14 @@
   (and (eds-proj-is-src-erl-file? filepath)
        (or (eds-proj-get-st-author)
            (eds-proj-get-st-copy))))
+
+(defun eds-proj-get-buffers (&optional name) (interactive)
+  "returns list if one or more proj buffer source files" 
+  (eds-util-filter 
+   (lambda (buf) 
+     (eds-proj-is-src-erl-file? (buffer-file-name buf) name)) (buffer-list)))
+
+(defun eds-proj-get-buffer-modulenames (&optional name) (interactive)
+  (let ((buffers (eds-proj-get-buffers name)))
+    (if buffers (mapcar #'eds-util-get-modulename-from-buffer buffers))))
 

@@ -9,8 +9,6 @@ parsed response as the single argument."
          (resource    (list "nodes" node-name "modules" module))
          (rest-args   (list (cons "file" file)))
          (cb-args     (list callback 201)))
-    (print 
-     (concat "node-name: " node-name " resource: " module))
     (edts-log-debug "Compiling %s async on %s" module node-name)
     (edts-rest-post-async resource
                           rest-args
@@ -20,7 +18,7 @@ parsed response as the single argument."
 (defun eds-compile-file (module-file)
   "compile and load a single file"
   (when (eds-util-is-erl-file? module-file)
-    (let ((module-name (eds-util-get-filename-module-name module-file))
+    (let ((module-name (eds-util-get-modulename-from-filename module-file))
           (node-name (eds-proj-get-nodename)))
       (eds-compile-and-load 
        module-name module-file 
